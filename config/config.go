@@ -16,9 +16,9 @@ type Config struct {
 	POSTGRES_PORT     string
 	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
-	USER_TABLE        string
-	ROLE_TABLE        string
-	USER_ROLE_TABLE   string
+	SERVICE_TABLE     string
+	REVIEWS_TABLE     string
+	REQUEST_TABLE     string
 	DEBUG             bool
 	TEST              bool
 }
@@ -38,15 +38,15 @@ func NewConfig(logger ports.LoggerService) (*Config, error) {
 
 	var (
 		SECRET_KEY        = os.Getenv("SECRET_KEY")
-		SERVER_PORT       = "8080"
-		POSTGRES_DB       = "usafihub"
+		SERVER_PORT       = "5001"
+		POSTGRES_DB       = "usafihub-cleaner-service"
 		POSTGRES_HOST     = "postgres"
 		POSTGRES_PORT     = "5432"
 		POSTGRES_USER     = "postgres"
 		POSTGRES_PASSWORD = os.Getenv("POSTGRES_PASSWORD")
-		USER_TABLE        = ""
-		ROLE_TABLE        = ""
-		USER_ROLE_TABLE   = ""
+		SERVICE_TABLE     = ""
+		REVIEWS_TABLE     = ""
+		REQUEST_TABLE     = ""
 		DEBUG             = false
 		TEST              = false
 	)
@@ -59,17 +59,17 @@ func NewConfig(logger ports.LoggerService) (*Config, error) {
 	case "production_test":
 		TEST = true
 		DEBUG = true
-		USER_TABLE = "Prod_Test_Users"
-		ROLE_TABLE = "Prod_Test_Roles"
-		USER_ROLE_TABLE = "Prod_Test_UserRoles"
+		SERVICE_TABLE = "Prod_Test_Service"
+		REVIEWS_TABLE = "Prod_Test_Review"
+		REQUEST_TABLE = "Prod_Test_request"
 
 	case "development":
 		TEST = true
 		DEBUG = true
 		POSTGRES_HOST = "localhost"
-		USER_TABLE = "Dev_Users"
-		ROLE_TABLE = "Dev_Roles"
-		USER_ROLE_TABLE = "Dev_UserRoles"
+		SERVICE_TABLE = "Dev_Service"
+		REVIEWS_TABLE = "Dev_Review"
+		REQUEST_TABLE = "Dev_request"
 
 	case "development_test":
 		TEST = true
@@ -77,23 +77,23 @@ func NewConfig(logger ports.LoggerService) (*Config, error) {
 		SECRET_KEY = "testsecret"
 		POSTGRES_PASSWORD = "pass1234"
 		POSTGRES_HOST = "localhost"
-		USER_TABLE = "Test_Users"
-		ROLE_TABLE = "Test_Roles"
-		USER_ROLE_TABLE = "Test_UserRoles"
+		SERVICE_TABLE = "Test_Dev_Service"
+		REVIEWS_TABLE = "Test_Dev_Review"
+		REQUEST_TABLE = "Test_Dev_request"
 
 	case "docker":
 		TEST = true
 		DEBUG = true
-		USER_TABLE = "Docker_Users"
-		ROLE_TABLE = "Docker_Roles"
-		USER_ROLE_TABLE = "Docker_UserRoles"
+		SERVICE_TABLE = "Docker_Service"
+		REVIEWS_TABLE = "Docker_Review"
+		REQUEST_TABLE = "Docker_request"
 
 	case "docker_test":
 		TEST = true
 		DEBUG = true
-		USER_TABLE = "Docker_Test_Users"
-		ROLE_TABLE = "Docker_Test_Roles"
-		USER_ROLE_TABLE = "Docker_Test_UserRoles"
+		SERVICE_TABLE = "Test_Docker_Service"
+		REVIEWS_TABLE = "Test_Docker_Review"
+		REQUEST_TABLE = "Test_Docker_request"
 	}
 
 	config := Config{
@@ -105,9 +105,9 @@ func NewConfig(logger ports.LoggerService) (*Config, error) {
 		POSTGRES_PORT:     POSTGRES_PORT,
 		POSTGRES_USER:     POSTGRES_USER,
 		POSTGRES_PASSWORD: POSTGRES_PASSWORD,
-		USER_TABLE:        USER_TABLE,
-		ROLE_TABLE:        ROLE_TABLE,
-		USER_ROLE_TABLE:   USER_ROLE_TABLE,
+		SERVICE_TABLE:     SERVICE_TABLE,
+		REVIEWS_TABLE:     REVIEWS_TABLE,
+		REQUEST_TABLE:     REQUEST_TABLE,
 		DEBUG:             DEBUG,
 		TEST:              TEST,
 	}
