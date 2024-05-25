@@ -17,8 +17,8 @@ type RequestService interface {
 	UpdateRequest(request domain.Request) (*domain.Request, error)
 	DeleteRequest(request_id string) error
 	AssignCleaner(request_id, cleaner_id string) error
-	GetRequestByClient(client_id string) error
-	GetRequestByCleaner(cleaner_id string) error
+	GetRequestByClient(client_id string) (*[]domain.Request, error)
+	GetRequestByCleaner(cleaner_id string) (*[]domain.Request, error)
 }
 
 type ReviewService interface {
@@ -26,8 +26,8 @@ type ReviewService interface {
 	GetReviewById(review_id string) (*domain.Reviews, error)
 	UpdateReview(review domain.Reviews) (*domain.Reviews, error)
 	DeleteReview(review_id string) error
-	GetReviewByClient(client_id string) error
-	GetReviewByCleaner(cleaner_id string) error
+	GetReviewByClient(client_id string) (*[]domain.Reviews, error)
+	GetReviewByCleaner(cleaner_id string) (*[]domain.Reviews, error)
 }
 
 type ServiceRepository interface {
@@ -45,8 +45,8 @@ type RequestRepository interface {
 	UpdateRequest(request domain.Request) (*domain.Request, error)
 	DeleteRequest(request_id string) error
 	AssignCleaner(request_id, cleaner_id string) error
-	GetRequestByClient(client_id string) error
-	GetRequestByCleaner(cleaner_id string) error
+	GetRequestByClient(client_id string) (*[]domain.Request, error)
+	GetRequestByCleaner(cleaner_id string) (*[]domain.Request, error)
 }
 
 type ReviewRepository interface {
@@ -54,8 +54,8 @@ type ReviewRepository interface {
 	GetReviewById(review_id string) (*domain.Reviews, error)
 	UpdateReview(review domain.Reviews) (*domain.Reviews, error)
 	DeleteReview(review_id string) error
-	GetReviewByClient(client_id string) error
-	GetReviewByCleaner(cleaner_id string) error
+	GetReviewByClient(client_id string) (*[]domain.Reviews, error)
+	GetReviewByCleaner(cleaner_id string) (*[]domain.Reviews, error)
 }
 
 type LoggerService interface {

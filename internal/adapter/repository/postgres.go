@@ -7,6 +7,7 @@ import (
 	"github.com/AntonyIS/usafi-hub-cleaning-service/config"
 	"github.com/AntonyIS/usafi-hub-cleaning-service/internal/core/domain"
 	"github.com/AntonyIS/usafi-hub-cleaning-service/internal/core/ports"
+	_ "github.com/lib/pq"
 )
 
 type postgresClient struct {
@@ -43,7 +44,7 @@ func NewServicePostgresClient(config config.Config, logger ports.LoggerService) 
         service_id VARCHAR(255) PRIMARY KEY UNIQUE,
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        price_per_hour INT NOT NULL,
+        price_per_hour FLOAT NOT NULL,
         created_at TIMESTAMP,
         updated_at TIMESTAMP
     )
@@ -606,84 +607,84 @@ func (svc postgresClient) DeleteReview(reviewId string) error {
 }
 
 func (svc postgresClient) GetReviewByClient(clientId string) (*[]domain.Reviews, error) {
-    query := fmt.Sprintf(`
+	query := fmt.Sprintf(`
         SELECT review_id, request_id, client_id, cleaner_id, rating, comment, created_at, updated_at
         FROM %s
         WHERE client_id = $1
     `, svc.reviewTablename)
 
-    rows, err := svc.db.Query(query, clientId)
-    if err != nil {
-        svc.logger.Error(fmt.Sprintf(`Unable to get reviews by client: %s`, err.Error()))
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := svc.db.Query(query, clientId)
+	if err != nil {
+		svc.logger.Error(fmt.Sprintf(`Unable to get reviews by client: %s`, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
 
-    var reviews []domain.Reviews
-    for rows.Next() {
-        var review domain.Reviews
-        err := rows.Scan(
-            &review.ReviewId,
-            &review.RequestId,
-            &review.ClientId,
-            &review.CleanerId,
-            &review.Rating,
-            &review.Comment,
-            &review.CreatedAt,
-            &review.UpdatedAt,
-        )
-        if err != nil {
-            svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
-            return nil, err
-        }
-        reviews = append(reviews, review)
-    }
+	var reviews []domain.Reviews
+	for rows.Next() {
+		var review domain.Reviews
+		err := rows.Scan(
+			&review.ReviewId,
+			&review.RequestId,
+			&review.ClientId,
+			&review.CleanerId,
+			&review.Rating,
+			&review.Comment,
+			&review.CreatedAt,
+			&review.UpdatedAt,
+		)
+		if err != nil {
+			svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
+			return nil, err
+		}
+		reviews = append(reviews, review)
+	}
 
-    if err = rows.Err(); err != nil {
-        svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
-        return nil, err
-    }
+	if err = rows.Err(); err != nil {
+		svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
+		return nil, err
+	}
 
-    return &reviews, nil
+	return &reviews, nil
 }
 
 func (svc postgresClient) GetReviewByCleaner(cleanerId string) (*[]domain.Reviews, error) {
-    query := fmt.Sprintf(`
+	query := fmt.Sprintf(`
         SELECT review_id, request_id, client_id, cleaner_id, rating, comment, created_at, updated_at
         FROM %s
         WHERE cleaner_id = $1
     `, svc.reviewTablename)
 
-    rows, err := svc.db.Query(query, cleanerId)
-    if err != nil {
-        svc.logger.Error(fmt.Sprintf(`Unable to get reviews by cleaner: %s`, err.Error()))
-        return nil, err
-    }
-    defer rows.Close()
+	rows, err := svc.db.Query(query, cleanerId)
+	if err != nil {
+		svc.logger.Error(fmt.Sprintf(`Unable to get reviews by cleaner: %s`, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
 
-    var reviews []domain.Reviews
-    for rows.Next() {
-        var review domain.Reviews
-        err := rows.Scan(
-            &review.ReviewId,
-            &review.RequestId,
-            &review.ClientId,
-            &review.CleanerId,
-            &review.Rating,
-            &review.Comment,
-            &review.CreatedAt,
-            &review.UpdatedAt,
-        )
-        if err != nil {
-            svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
-            return nil, err
-        }
-        reviews = append(reviews, review)
-    }
+	var reviews []domain.Reviews
+	for rows.Next() {
+		var review domain.Reviews
+		err := rows.Scan(
+			&review.ReviewId,
+			&review.RequestId,
+			&review.ClientId,
+			&review.CleanerId,
+			&review.Rating,
+			&review.Comment,
+			&review.CreatedAt,
+			&review.UpdatedAt,
+		)
+		if err != nil {
+			svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
+			return nil, err
+		}
+		reviews = append(reviews, review)
+	}
 
-    if err = rows.Err(); err != nil {
-        svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
-        return nil, err
-    }
-    return &reviews, nil
+	if err = rows.Err(); err != nil {
+		svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
+		return nil, err
+	}
+	return &reviews, nil
 }

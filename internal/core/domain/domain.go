@@ -6,7 +6,7 @@ type Service struct {
 	ServiceId    string    `json:"service_id"`
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`
-	PricePerHour int       `json:"price_per_hour"`
+	PricePerHour float32       `json:"price_per_hour"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
