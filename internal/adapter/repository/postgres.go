@@ -6,19 +6,17 @@ import (
 
 	"github.com/AntonyIS/usafi-hub-cleaning-service/config"
 	"github.com/AntonyIS/usafi-hub-cleaning-service/internal/core/domain"
-	"github.com/AntonyIS/usafi-hub-cleaning-service/internal/core/ports"
 	_ "github.com/lib/pq"
 )
 
 type postgresClient struct {
 	db               *sql.DB
-	logger           ports.LoggerService
 	serviceTablename string
 	requestablename  string
 	reviewTablename  string
 }
 
-func NewServicePostgresClient(config config.Config, logger ports.LoggerService) (*postgresClient, error) {
+func NewServicePostgresClient(config config.Config) (*postgresClient, error) {
 	dbname := config.POSTGRES_DB
 	user := config.POSTGRES_USER
 	password := config.POSTGRES_PASSWORD
@@ -29,13 +27,11 @@ func NewServicePostgresClient(config config.Config, logger ports.LoggerService) 
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to the database: %v", err))
 		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to ping the database: %v", err))
 		return nil, err
 	}
 
@@ -52,20 +48,17 @@ func NewServicePostgresClient(config config.Config, logger ports.LoggerService) 
 
 	_, err = db.Exec(queryString)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to create user table: %v", err))
 		return nil, err
 	}
-	logger.Info("Connected to the database successfully")
 	return &postgresClient{
 		db:               db,
-		logger:           logger,
 		serviceTablename: config.SERVICE_TABLE,
 		requestablename:  config.REQUEST_TABLE,
 		reviewTablename:  config.REVIEWS_TABLE,
 	}, nil
 }
 
-func NewRequestPostgresClient(config config.Config, logger ports.LoggerService) (*postgresClient, error) {
+func NewRequestPostgresClient(config config.Config) (*postgresClient, error) {
 	dbname := config.POSTGRES_DB
 	user := config.POSTGRES_USER
 	password := config.POSTGRES_PASSWORD
@@ -76,13 +69,11 @@ func NewRequestPostgresClient(config config.Config, logger ports.LoggerService) 
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to the database: %v", err))
 		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to ping the database: %v", err))
 		return nil, err
 	}
 
@@ -101,20 +92,17 @@ func NewRequestPostgresClient(config config.Config, logger ports.LoggerService) 
 
 	_, err = db.Exec(queryString)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to create user table: %v", err))
 		return nil, err
 	}
-	logger.Info("Connected to the database successfully")
 	return &postgresClient{
 		db:               db,
-		logger:           logger,
 		serviceTablename: config.SERVICE_TABLE,
 		requestablename:  config.REQUEST_TABLE,
 		reviewTablename:  config.REVIEWS_TABLE,
 	}, nil
 }
 
-func NewReviewPostgresClient(config config.Config, logger ports.LoggerService) (*postgresClient, error) {
+func NewReviewPostgresClient(config config.Config) (*postgresClient, error) {
 	dbname := config.POSTGRES_DB
 	user := config.POSTGRES_USER
 	password := config.POSTGRES_PASSWORD
@@ -125,13 +113,11 @@ func NewReviewPostgresClient(config config.Config, logger ports.LoggerService) (
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to connect to the database: %v", err))
 		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to ping the database: %v", err))
 		return nil, err
 	}
 
@@ -150,13 +136,10 @@ func NewReviewPostgresClient(config config.Config, logger ports.LoggerService) (
 
 	_, err = db.Exec(queryString)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to create user table: %v", err))
 		return nil, err
 	}
-	logger.Info("Connected to the database successfully")
 	return &postgresClient{
 		db:               db,
-		logger:           logger,
 		serviceTablename: config.SERVICE_TABLE,
 		requestablename:  config.REQUEST_TABLE,
 		reviewTablename:  config.REVIEWS_TABLE,
@@ -179,10 +162,8 @@ func (svc postgresClient) CreateService(service domain.Service) (*domain.Service
 		service.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to create service: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Service created successfully")
 	return svc.GetServiceById(service.ServiceId)
 }
 
@@ -204,7 +185,6 @@ func (svc postgresClient) GetServiceById(serviceId string) (*domain.Service, err
 		&service.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get service: %s`, err.Error()))
 		return nil, err
 	}
 	return &service, nil
@@ -219,7 +199,6 @@ func (svc postgresClient) GetServices() (*[]domain.Service, error) {
 
 	rows, err := svc.db.Query(query)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get services: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -236,14 +215,12 @@ func (svc postgresClient) GetServices() (*[]domain.Service, error) {
 			&service.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan service: %s`, err.Error()))
 			return nil, err
 		}
 		services = append(services, service)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over services: %s`, err.Error()))
 		return nil, err
 	}
 
@@ -266,10 +243,8 @@ func (svc postgresClient) UpdateService(service domain.Service) (*domain.Service
 		service.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to update service: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Service updated successfully")
 	return svc.GetServiceById(service.ServiceId)
 }
 
@@ -282,10 +257,8 @@ func (svc postgresClient) DeleteService(serviceId string) error {
 
 	_, err := svc.db.Exec(query, serviceId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to delete service: %s`, err.Error()))
 		return err
 	}
-	svc.logger.Info("Service deleted successfully")
 	return nil
 }
 
@@ -306,10 +279,8 @@ func (svc postgresClient) CreateRequest(request domain.Request) (*domain.Request
 		request.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to create request: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Request created successfully")
 	return svc.GetRequestById(request.RequestId)
 }
 
@@ -332,7 +303,6 @@ func (svc postgresClient) GetRequestById(requestId string) (*domain.Request, err
 		&request.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get request: %s`, err.Error()))
 		return nil, err
 	}
 	return &request, nil
@@ -346,7 +316,6 @@ func (svc postgresClient) GetRequests() (*[]domain.Request, error) {
 
 	rows, err := svc.db.Query(query)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get requests: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -365,14 +334,12 @@ func (svc postgresClient) GetRequests() (*[]domain.Request, error) {
 			&request.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan request: %s`, err.Error()))
 			return nil, err
 		}
 		requests = append(requests, request)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over requests: %s`, err.Error()))
 		return nil, err
 	}
 
@@ -396,10 +363,8 @@ func (svc postgresClient) UpdateRequest(request domain.Request) (*domain.Request
 		request.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to update request: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Request updated successfully")
 	return svc.GetRequestById(request.RequestId)
 }
 
@@ -411,10 +376,8 @@ func (svc postgresClient) DeleteRequest(requestId string) error {
 
 	_, err := svc.db.Exec(query, requestId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to delete request: %s`, err.Error()))
 		return err
 	}
-	svc.logger.Info("Request deleted successfully")
 	return nil
 }
 
@@ -427,10 +390,8 @@ func (svc postgresClient) AssignCleaner(requestId, cleanerId string) error {
 
 	_, err := svc.db.Exec(query, requestId, cleanerId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to assign cleaner to request: %s`, err.Error()))
 		return err
 	}
-	svc.logger.Info("Cleaner assigned successfully")
 	return nil
 }
 
@@ -443,7 +404,6 @@ func (svc postgresClient) GetRequestByClient(clientId string) (*[]domain.Request
 
 	rows, err := svc.db.Query(query, clientId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get requests by client: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -462,14 +422,12 @@ func (svc postgresClient) GetRequestByClient(clientId string) (*[]domain.Request
 			&request.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan request: %s`, err.Error()))
 			return nil, err
 		}
 		requests = append(requests, request)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over requests: %s`, err.Error()))
 		return nil, err
 	}
 
@@ -485,7 +443,6 @@ func (svc postgresClient) GetRequestByCleaner(cleanerId string) (*[]domain.Reque
 
 	rows, err := svc.db.Query(query, cleanerId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get requests by cleaner: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -504,14 +461,12 @@ func (svc postgresClient) GetRequestByCleaner(cleanerId string) (*[]domain.Reque
 			&request.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan request: %s`, err.Error()))
 			return nil, err
 		}
 		requests = append(requests, request)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over requests: %s`, err.Error()))
 		return nil, err
 	}
 
@@ -535,10 +490,8 @@ func (svc postgresClient) CreateReview(review domain.Reviews) (*domain.Reviews, 
 		review.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to create review: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Review created successfully")
 	return svc.GetReviewById(review.ReviewId)
 }
 
@@ -561,7 +514,6 @@ func (svc postgresClient) GetReviewById(reviewId string) (*domain.Reviews, error
 		&review.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get review: %s`, err.Error()))
 		return nil, err
 	}
 	return &review, nil
@@ -584,10 +536,8 @@ func (svc postgresClient) UpdateReview(review domain.Reviews) (*domain.Reviews, 
 		review.UpdatedAt,
 	)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to update review: %s`, err.Error()))
 		return nil, err
 	}
-	svc.logger.Info("Review updated successfully")
 	return svc.GetReviewById(review.ReviewId)
 }
 
@@ -599,10 +549,8 @@ func (svc postgresClient) DeleteReview(reviewId string) error {
 
 	_, err := svc.db.Exec(query, reviewId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to delete review: %s`, err.Error()))
 		return err
 	}
-	svc.logger.Info("Review deleted successfully")
 	return nil
 }
 
@@ -615,7 +563,6 @@ func (svc postgresClient) GetReviewByClient(clientId string) (*[]domain.Reviews,
 
 	rows, err := svc.db.Query(query, clientId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get reviews by client: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -634,14 +581,12 @@ func (svc postgresClient) GetReviewByClient(clientId string) (*[]domain.Reviews,
 			&review.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
 			return nil, err
 		}
 		reviews = append(reviews, review)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
 		return nil, err
 	}
 
@@ -657,7 +602,6 @@ func (svc postgresClient) GetReviewByCleaner(cleanerId string) (*[]domain.Review
 
 	rows, err := svc.db.Query(query, cleanerId)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf(`Unable to get reviews by cleaner: %s`, err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -676,14 +620,12 @@ func (svc postgresClient) GetReviewByCleaner(cleanerId string) (*[]domain.Review
 			&review.UpdatedAt,
 		)
 		if err != nil {
-			svc.logger.Error(fmt.Sprintf(`Unable to scan review: %s`, err.Error()))
 			return nil, err
 		}
 		reviews = append(reviews, review)
 	}
 
 	if err = rows.Err(); err != nil {
-		svc.logger.Error(fmt.Sprintf(`Error iterating over reviews: %s`, err.Error()))
 		return nil, err
 	}
 	return &reviews, nil

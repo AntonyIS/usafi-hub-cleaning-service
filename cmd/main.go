@@ -19,9 +19,9 @@ func RunService() {
 		panic(err)
 	}
 
-	serviceRepo, _ := repository.NewServicePostgresClient(*config, logger)
-	requestRepo, _ := repository.NewRequestPostgresClient(*config, logger)
-	reviewRepo, _ := repository.NewReviewPostgresClient(*config, logger)
+	serviceRepo, _ := repository.NewServicePostgresClient(*config)
+	requestRepo, _ := repository.NewRequestPostgresClient(*config)
+	reviewRepo, _ := repository.NewReviewPostgresClient(*config)
 
 	serviceService := services.NewServiceServiceManagement(serviceRepo, logger)
 	requestService := services.NewRequestServiceManagement(requestRepo, logger)

@@ -34,12 +34,12 @@ func InitGinRoutes(serviceService ports.ServiceService, requestService ports.Req
 	requestsRoutes := router.Group("/requests/v1")
 	reviewsRoutes := router.Group("/reviews/v1")
 
-	// middleware := NewMiddleware(logger, config.SECRET_KEY)
+	middleware := NewMiddleware(logger, config.SECRET_KEY)
 
-	// servicesRoutes.Use(middleware.GinAuthMiddleware())
-	// requestsRoutes.Use(middleware.GinAuthMiddleware())
-	// reviewsRoutes.Use(middleware.GinAuthMiddleware())
-	// homeRoutes.Use(middleware.GinAuthMiddleware())
+	// servicesRoutes.Use(middleware.AuthorizeToken)
+	requestsRoutes.Use(middleware.AuthorizeToken)
+	reviewsRoutes.Use(middleware.AuthorizeToken)
+	homeRoutes.Use(middleware.AuthorizeToken)
 
 	// Home routes
 	homeRoutes.GET("/", handler.Home)

@@ -1,8 +1,9 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/AntonyIS/usafi-hub-cleaning-service/internal/core/ports"
 	"github.com/gin-gonic/gin"
@@ -20,30 +21,56 @@ func NewMiddleware(logger ports.LoggerService, secretKey string) *middleware {
 		secretKey: secretKey,
 	}
 }
-func (m middleware) GinAuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authorizationHeader := c.GetHeader("Authorization")
-		if authorizationHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
+
+func (m middleware) AuthorizeToken(ctx *gin.Context) {
+	tokenString := ctx.GetHeader("access_token")
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			m.logger.Error(fmt.Sprintf("unexpected signing method: %v", token.Header["sub"]))
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["sub"])
+		}
+		return []byte(m.secretKey), nil
+	})
+
+	if err != nil {
+		if err != nil {
+			m.logger.Error(fmt.Sprintf("Failed to verify token string : %v", err))
+			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"responseCode":    http.StatusUnauthorized,
-				"responseMessage": "Missing Authorization token",
+				"responseMessage": "Failed to verify token string",
 			})
-			c.Abort()
+			ctx.Abort()
 			return
 		}
 
-		tokenString := strings.Split(authorizationHeader, " ")[1]
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(m.secretKey), nil
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"responseCode":    http.StatusUnauthorized,
+			"responseMessage": "request not authorized",
 		})
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{
+		ctx.Abort()
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"responseCode":    http.StatusUnauthorized,
-				"responseMessage": "Not Authorized",
+				"responseMessage": "Failed to verify token string",
 			})
-			c.Abort()
+			ctx.Abort()
 			return
 		}
-		c.Next()
+		ctx.Next()
+	} else {
+		m.logger.Error("request not authorized")
+
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"responseCode":    http.StatusUnauthorized,
+			"responseMessage": "Failed to verify token string",
+		})
+		ctx.Abort()
+
+		return
 	}
 }

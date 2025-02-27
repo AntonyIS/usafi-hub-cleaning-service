@@ -92,6 +92,7 @@ func (h handler) GetServiceById(ctx *gin.Context) {
 
 	service, err := h.serviceService.GetServiceById(serviceId)
 	if err != nil {
+
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"responseMessage": err.Error(),
 			"responseCode":    http.StatusInternalServerError,
@@ -120,7 +121,7 @@ func (h handler) GetServices(ctx *gin.Context) {
 		"responseMessage": "Services found",
 		"responseCode":    http.StatusOK,
 		"data":            services,
-		"responsecount":           len(*services),
+		"responseCount":   len(*services),
 	})
 }
 
